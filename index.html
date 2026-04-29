@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑白棋 AI 教練版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            background-color: #1a472a;
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .cell {
+            background-color: #2e8b57;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+        }
+        .cell:hover {
+            background-color: #3cb371;
+        }
+        .piece {
+            width: 85%;
+            height: 85%;
+            border-radius: 50%;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        .piece.black {
+            background: linear-gradient(135deg, #444, #000);
+        }
+        .piece.white {
+            background: linear-gradient(135deg, #fff, #ddd);
+        }
+        .valid-move {
+            width: 25%;
+            height: 25%;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+        .hint-move {
+            width: 40%;
+            height: 40%;
+            border-radius: 50%;
+            background-color: rgba(250, 204, 21, 0.7);
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+            pointer-events: none;
+            animation: pulseHint 1.5s infinite;
+        }
+        .coach-panel {
+            background-image: linear-gradient(to right bottom, #ffffff, #f3f4f6);
+        }
+        @keyframes pulseHint {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    <header class="text-center mb-6">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-3">
+            <i data-lucide="brain-circuit" class="w-8 h-8 md:w-10 md:h-10 text-emerald-600"></i>
+            黑白棋 AI 教練
+        </h1>
+        <p class="text-sm md:text-base text-gray-600">即時分析、策略指導，並將錯誤紀錄同步至雲端</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        
+        <!-- 左側：遊戲區 -->
+        <div class="lg:col-span-7 flex flex-col items-center">
+            
+            <!-- 分數板 -->
+            <div class="flex justify-between w-full max-w-[500px] mb-4 bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex items-center gap-2 md:gap-3">
+                    <div class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-gray-700 to-black shadow-md border-2 border-green-500" id="turn-indicator-black"></div>
+                    <div class="font-bold text-lg md:text-xl">玩家 (黑): <span id="score-black">2</span></div>
+                </div>
+                <div class="flex items-center gap-2 md:gap-3">
+                    <div class="font-bold text-lg md:text-xl">AI (白): <span id="score-white">2</span></div>
+                    <div class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-white to-gray-200 shadow-md border-2 border-transparent" id="turn-indicator-white"></div>
+                </div>
+            </div>
+
+            <!-- 棋盤 -->
+            <div id="board" class="board-grid"></div>
+
+            <!-- 控制列 -->
+            <div class="mt-4 flex gap-4 w-full max-w-[500px]">
+                <button onclick="startGame()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow flex items-center justify-center gap-2 transition-colors">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i> 重新開始
+                </button>
+            </div>
+        </div>
+
+        <!-- 右側：AI 教練與設定區 -->
+        <div class="lg:col-span-5 flex flex-col gap-4 md:gap-6">
+            
+            <!-- 教練分析面板 -->
+            <div class="coach-panel rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200 flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                    <i data-lucide="bot" class="w-24 h-24 md:w-32 md:h-32"></i>
+                </div>
+                
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="message-square-text" class="text-blue-500"></i> 教練點評
+                </h2>
+                
+                <div id="coach-message-box" class="flex-1 bg-white bg-opacity-80 rounded-xl p-4 border border-blue-100 shadow-inner mb-4 min-h-[140px] text-base md:text-lg text-gray-700 leading-relaxed overflow-y-auto">
+                    <div id="coach-message">
+                        歡迎！我是您的黑白棋 AI 教練。請開始下棋，我會在您每走一步後進行分析與評分，或者您也可以主動向我提問。
+                    </div>
+                </div>
+
+                <!-- 當前步數評估細節 -->
+                <div class="bg-gray-50 rounded-xl p-3 md:p-4 text-sm border border-gray-200 mb-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">最新步評分落差：</span>
+                        <span id="score-diff" class="font-bold text-gray-900">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">失誤等級：</span>
+                        <span id="error-level" class="font-bold text-emerald-600 text-base">無</span>
+                    </div>
+                </div>
+
+                <!-- 互動問答區 -->
+                <div class="border-t border-gray-200 pt-4 relative z-10">
+                    <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        <i data-lucide="message-circle-question" class="w-4 h-4 text-indigo-500"></i> 向教練發問：
+                    </h4>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="askBestMove()" class="text-left px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-sm rounded-lg transition-colors flex items-center gap-2 border border-blue-100">
+                            <i data-lucide="lightbulb" class="w-4 h-4 flex-shrink-0"></i> <span>「這一步最佳走法是哪裡？」</span>
+                        </button>
+                        <button onclick="askCornerStrategy()" class="text-left px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium text-sm rounded-lg transition-colors flex items-center gap-2 border border-purple-100">
+                            <i data-lucide="shield-alert" class="w-4 h-4 flex-shrink-0"></i> <span>「如何避免失去角落？」</span>
+                        </button>
+                        <button onclick="askWinningStrategy()" class="text-left px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium text-sm rounded-lg transition-colors flex items-center gap-2 border border-emerald-100">
+                            <i data-lucide="map" class="w-4 h-4 flex-shrink-0"></i> <span>「找出目前的致勝策略」</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Apps Script 設定 -->
+            <div class="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-200">
+                <h3 class="text-base md:text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    <i data-lucide="database" class="w-5 h-5 text-purple-500"></i> 資料收集 (GAS)
+                </h3>
+                <p class="text-xs text-gray-500 mb-3">您的 Google Apps Script 連結已預設載入。請勾選下方以啟用紀錄。</p>
+                <!-- 這裡預設填入了您提供的 URL -->
+                <input type="text" id="gas-url" value="https://script.google.com/macros/s/AKfycbwjGt1PMwrTG1Tpk3i796YcsppSJvLw6Yu81Av7evKRfdw4DGUTlwz6nyHz-KcqRKzy/exec" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm mb-3 bg-gray-50" readonly>
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                    <input type="checkbox" id="enable-logging" class="rounded text-purple-600 focus:ring-purple-500 cursor-pointer">
+                    <label for="enable-logging" class="cursor-pointer">啟用錯誤紀錄回傳 (自動寫入試算表)</label>
+                </div>
+                <div id="gas-status" class="mt-2 text-xs font-semibold text-gray-500"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // 初始化 Lucide Icons
+    lucide.createIcons();
+
+    // 遊戲常數
+    const BLACK = 1; // 玩家
+    const WHITE = 2; // AI
+    const EMPTY = 0;
+    
+    // 經典黑白棋位置權重矩陣
+    const WEIGHTS = [
+        [100, -20,  10,   5,   5,  10, -20, 100],
+        [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
+        [ 10,  -2,   1,   1,   1,   1,  -2,  10],
+        [  5,  -2,   1,   0,   0,   1,  -2,   5],
+        [  5,  -2,   1,   0,   0,   1,  -2,   5],
+        [ 10,  -2,   1,   1,   1,   1,  -2,  10],
+        [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
+        [100, -20,  10,   5,   5,  10, -20, 100]
+    ];
+
+    const DIRS = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
+
+    let board = [];
+    let currentPlayer = BLACK;
+    let validMoves = [];
+    let isGameOver = false;
+    let aiComputing = false;
+    let currentHint = null;
+
+    const boardEl = document.getElementById('board');
+    const scoreBlackEl = document.getElementById('score-black');
+    const scoreWhiteEl = document.getElementById('score-white');
+    const turnIndBlack = document.getElementById('turn-indicator-black');
+    const turnIndWhite = document.getElementById('turn-indicator-white');
+    const coachMsgEl = document.getElementById('coach-message');
+    const scoreDiffEl = document.getElementById('score-diff');
+    const errorLevelEl = document.getElementById('error-level');
+
+    function startGame() {
+        board = Array(8).fill().map(() => Array(8).fill(EMPTY));
+        board[3][3] = WHITE;
+        board[3][4] = BLACK;
+        board[4][3] = BLACK;
+        board[4][4] = WHITE;
+        
+        currentPlayer = BLACK;
+        isGameOver = false;
+        aiComputing = false;
+        currentHint = null;
+        
+        setCoachMessage("遊戲開始！身為黑棋，請下第一步。控制中心區域（不要急著吃太多子）是前期的好策略。");
+        scoreDiffEl.innerText = "-";
+        errorLevelEl.innerText = "-";
+        errorLevelEl.className = "font-bold text-gray-500 text-base";
+        
+        updateValidMoves();
+        renderBoard();
+        updateUI();
+    }
+
+    function updateValidMoves() {
+        validMoves = [];
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                if (isValidMove(board, r, c, currentPlayer).length > 0) {
+                    validMoves.push({r, c});
+                }
+            }
+        }
+    }
+
+    function isValidMove(b, r, c, player) {
+        if (b[r][c] !== EMPTY) return [];
+        let flips = [];
+        const opponent = player === BLACK ? WHITE : BLACK;
+
+        for (let [dr, dc] of DIRS) {
+            let nr = r + dr, nc = c + dc;
+            let tempFlips = [];
+            
+            while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] === opponent) {
+                tempFlips.push({r: nr, c: nc});
+                nr += dr;
+                nc += dc;
+            }
+            
+            if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] === player && tempFlips.length > 0) {
+                flips = flips.concat(tempFlips);
+            }
+        }
+        return flips;
+    }
+
+    function renderBoard() {
+        boardEl.innerHTML = '';
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.onclick = () => onCellClick(r, c);
+
+                if (board[r][c] !== EMPTY) {
+                    const piece = document.createElement('div');
+                    piece.className = `piece ${board[r][c] === BLACK ? 'black' : 'white'}`;
+                    cell.appendChild(piece);
+                } else {
+                    const isValid = validMoves.some(m => m.r === r && m.c === c);
+                    if (currentHint && currentHint.r === r && currentHint.c === c) {
+                        const hintMarker = document.createElement('div');
+                        hintMarker.className = 'hint-move';
+                        cell.appendChild(hintMarker);
+                    } else if (isValid && currentPlayer === BLACK && !aiComputing) {
+                        const marker = document.createElement('div');
+                        marker.className = 'valid-move';
+                        cell.appendChild(marker);
+                    }
+                }
+                boardEl.appendChild(cell);
+            }
+        }
+    }
+
+    function updateUI() {
+        let bCount = 0, wCount = 0;
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                if (board[r][c] === BLACK) bCount++;
+                if (board[r][c] === WHITE) wCount++;
+            }
+        }
+        scoreBlackEl.innerText = bCount;
+        scoreWhiteEl.innerText = wCount;
+
+        if (currentPlayer === BLACK) {
+            turnIndBlack.style.borderColor = '#10b981';
+            turnIndWhite.style.borderColor = 'transparent';
+        } else {
+            turnIndBlack.style.borderColor = 'transparent';
+            turnIndWhite.style.borderColor = '#10b981';
+        }
+    }
+
+    async function onCellClick(r, c) {
+        if (isGameOver || aiComputing || currentPlayer !== BLACK) return;
+
+        const flips = isValidMove(board, r, c, currentPlayer);
+        if (flips.length === 0) return;
+
+        aiComputing = true;
+        currentHint = null;
+
+        const analysis = await analyzePlayerMove(r, c);
+        displayCoachFeedback(analysis, r, c);
+        
+        executeMove(r, c, flips);
+        logToGas(analysis, r, c);
+
+        setTimeout(aiTurn, 800);
+    }
+
+    function executeMove(r, c, flips) {
+        board[r][c] = currentPlayer;
+        for (let flip of flips) {
+            board[flip.r][flip.c] = currentPlayer;
+        }
+        switchTurn();
+    }
+
+    function switchTurn() {
+        currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+        updateValidMoves();
+        
+        if (validMoves.length === 0) {
+            currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+            updateValidMoves();
+            
+            if (validMoves.length === 0) {
+                endGame();
+                return;
+            } else {
+                setCoachMessage(`玩家無步可下，PASS！換 ${currentPlayer === BLACK ? '黑棋' : '白棋'} 下。`);
+                if (currentPlayer === WHITE) {
+                    setTimeout(aiTurn, 1000);
+                } else {
+                    aiComputing = false;
+                }
+            }
+        }
+        
+        updateUI();
+        renderBoard();
+    }
+
+    function aiTurn() {
+        if (isGameOver) return;
+        
+        setTimeout(() => {
+            const bestMove = getBestMoveMinimax(board, WHITE, 4);
+            if (bestMove) {
+                const flips = isValidMove(board, bestMove.r, bestMove.c, WHITE);
+                executeMove(bestMove.r, bestMove.c, flips);
+            }
+            aiComputing = false;
+            updateUI();
+            renderBoard();
+        }, 100);
+    }
+
+    function endGame() {
+        isGameOver = true;
+        let bCount = 0, wCount = 0;
+        for (let r=0; r<8; r++) {
+            for (let c=0; c<8; c++) {
+                if (board[r][c] === BLACK) bCount++;
+                if (board[r][c] === WHITE) wCount++;
+            }
+        }
+        let result = bCount > wCount ? "恭喜你贏了！🎉" : bCount < wCount ? "AI 獲勝！再接再厲！💪" : "平手！🤝";
+        setCoachMessage(`<strong>遊戲結束！</strong><br>${result}`);
+        renderBoard();
+    }
+
+    /* --- 教練主動問答功能 --- */
+
+    function askBestMove() {
+        if (isGameOver || currentPlayer !== BLACK || aiComputing) {
+            setCoachMessage("💡 必須在「你的回合」才能詢問最佳走法喔！");
+            return;
+        }
+        
+        setCoachMessage("教練正在為你深度運算最佳棋路...");
+        
+        setTimeout(() => {
+            const bestMoveData = getBestMoveMinimax(board, BLACK, 4);
+            if (bestMoveData) {
+                currentHint = { r: bestMoveData.r, c: bestMoveData.c };
+                const posName = `${String.fromCharCode(97 + bestMoveData.c)}${bestMoveData.r + 1}`;
+                setCoachMessage(`💡 <strong>教練建議：</strong><br>根據深度計算，目前的最佳落子點在 <strong>${posName}</strong>。這步可以最大化你的局部優勢，避免讓對手佔據好位置。<br><span class="text-sm text-yellow-600 font-semibold">（我已經在棋盤上為你閃爍黃燈標示出來了）</span>`);
+                renderBoard();
+            }
+        }, 50);
+    }
+
+    function askCornerStrategy() {
+        const msg = `
+            <div class="text-gray-800 text-sm md:text-base">
+                <strong class="text-purple-700 text-base md:text-lg">🛡️ 角落地帶生存法則</strong><br><br>
+                <ul class="list-disc pl-4 space-y-2">
+                    <li><strong>遠離星位 (X位) 與 C位：</strong> 遊戲前中期，絕對不要下在緊貼著角落的格子內。這等於幫對手鋪好佔領角落的路！</li>
+                    <li><strong>行動力法則：</strong> 不要試圖在前期吃太多子。盡量下在<strong>「只會翻轉對手 1 顆子，且該子周圍都有其他棋子」</strong>的地方。</li>
+                    <li><strong>逼迫失誤：</strong> 當對手無路可走時，他們被迫下在危險的位子，這時角落就是你的了！</li>
+                </ul>
+            </div>
+        `;
+        setCoachMessage(msg);
+    }
+
+    function askWinningStrategy() {
+        if (isGameOver) return;
+        
+        let totalPieces = 0;
+        let cornersControlled = { black: 0, white: 0 };
+        const corners = [[0,0], [0,7], [7,0], [7,7]];
+
+        for (let r=0; r<8; r++) {
+            for (let c=0; c<8; c++) {
+                if (board[r][c] !== EMPTY) totalPieces++;
+            }
+        }
+        
+        corners.forEach(([r, c]) => {
+            if (board[r][c] === BLACK) cornersControlled.black++;
+            if (board[r][c] === WHITE) cornersControlled.white++;
+        });
+
+        let stage = totalPieces < 20 ? "開局" : totalPieces < 45 ? "中盤" : "殘局";
+        let strategy = "";
+
+        if (stage === "開局") {
+            strategy = `目前處於<strong>開局階段</strong>。你的首要目標是：<strong class="text-emerald-600">控制中心，少吃子。</strong><br>盡量將自己的棋子包裹在對手的棋子中間，隱藏起來。不要搶佔邊緣。`;
+        } else if (stage === "中盤") {
+            strategy = `目前進入<strong>中盤階段</strong>。你的首要目標是：<strong class="text-emerald-600">限制對手行動力，等待角落機會。</strong><br>觀察對手的合法步數，試著走那些不會幫對手打開新步數的棋。`;
+            if (cornersControlled.white > 0) {
+                strategy += `<br><span class="text-red-600">⚠️ 注意：對手已佔據角落，請利用邊線防守，避免讓優勢擴大。</span>`;
+            }
+        } else {
+            strategy = `目前進入<strong>殘局階段 (收官)</strong>。你的首要目標是：<strong class="text-emerald-600">奇偶性法則與最大化吃子。</strong><br>現在不用再客氣了！計算哪一步能翻轉最多的棋子，並優先下在包含奇數個空格的區域內，這樣最後一步會是你下。`;
+        }
+
+        const msg = `
+            <div class="text-gray-800 text-sm md:text-base">
+                <strong class="text-emerald-700 text-base md:text-lg">🗺️ 當前局勢分析與策略</strong><br><br>
+                <div class="text-xs md:text-sm bg-gray-100 p-2 rounded mb-2">
+                    棋局階段：${stage} (已下 ${totalPieces} 子)<br>
+                    角落控制：你佔了 ${cornersControlled.black} 個，AI 佔了 ${cornersControlled.white} 個。
+                </div>
+                ${strategy}
+            </div>
+        `;
+        setCoachMessage(msg);
+    }
+
+    /* --- AI 核心演算法 --- */
+
+    function evaluateBoard(b, player) {
+        let score = 0;
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                if (b[r][c] === player) score += WEIGHTS[r][c];
+                else if (b[r][c] !== EMPTY) score -= WEIGHTS[r][c];
+            }
+        }
+        return score;
+    }
+
+    function getAllValidMovesData(b, player) {
+        let moves = [];
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                let flips = isValidMove(b, r, c, player);
+                if (flips.length > 0) moves.push({r, c, flips});
+            }
+        }
+        return moves;
+    }
+
+    function minimax(b, depth, alpha, beta, isMaximizing, player, originalPlayer) {
+        if (depth === 0) return evaluateBoard(b, originalPlayer);
+
+        const moves = getAllValidMovesData(b, player);
+        if (moves.length === 0) {
+            const opponentMoves = getAllValidMovesData(b, player === BLACK ? WHITE : BLACK);
+            if (opponentMoves.length === 0) return evaluateBoard(b, originalPlayer);
+            return minimax(b, depth - 1, alpha, beta, !isMaximizing, player === BLACK ? WHITE : BLACK, originalPlayer);
+        }
+
+        if (isMaximizing) {
+            let maxEval = -Infinity;
+            for (let move of moves) {
+                let newBoard = b.map(row => [...row]);
+                newBoard[move.r][move.c] = player;
+                for (let f of move.flips) newBoard[f.r][f.c] = player;
+                
+                let ev = minimax(newBoard, depth - 1, alpha, beta, false, player === BLACK ? WHITE : BLACK, originalPlayer);
+                maxEval = Math.max(maxEval, ev);
+                alpha = Math.max(alpha, ev);
+                if (beta <= alpha) break;
+            }
+            return maxEval;
+        } else {
+            let minEval = Infinity;
+            for (let move of moves) {
+                let newBoard = b.map(row => [...row]);
+                newBoard[move.r][move.c] = player;
+                for (let f of move.flips) newBoard[f.r][f.c] = player;
+                
+                let ev = minimax(newBoard, depth - 1, alpha, beta, true, player === BLACK ? WHITE : BLACK, originalPlayer);
+                minEval = Math.min(minEval, ev);
+                beta = Math.min(beta, ev);
+                if (beta <= alpha) break;
+            }
+            return minEval;
+        }
+    }
+
+    function getBestMoveMinimax(b, player, depth) {
+        const moves = getAllValidMovesData(b, player);
+        if (moves.length === 0) return null;
+
+        let bestVal = -Infinity;
+        let bestMoves = [];
+
+        for (let move of moves) {
+            let newBoard = b.map(row => [...row]);
+            newBoard[move.r][move.c] = player;
+            for (let f of move.flips) newBoard[f.r][f.c] = player;
+
+            let moveVal = minimax(newBoard, depth - 1, -Infinity, Infinity, false, player === BLACK ? WHITE : BLACK, player);
+            move.score = moveVal; 
+            
+            if (moveVal > bestVal) {
+                bestVal = moveVal;
+                bestMoves = [move];
+            } else if (moveVal === bestVal) {
+                bestMoves.push(move);
+            }
+        }
+        
+        const chosenMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        chosenMove.allMoves = moves; 
+        return chosenMove;
+    }
+
+    async function analyzePlayerMove(playerR, playerC) {
+        return new Promise(resolve => {
+            const bestMoveData = getBestMoveMinimax(board, BLACK, 3);
+            
+            let playerMoveScore = -Infinity;
+            let bestScore = bestMoveData.score;
+            
+            const playerMove = bestMoveData.allMoves.find(m => m.r === playerR && m.c === playerC);
+            if (playerMove) playerMoveScore = playerMove.score;
+
+            const diff = bestScore - playerMoveScore;
+            const weightValue = WEIGHTS[playerR][playerC];
+            
+            let errorLevel = "完美";
+            let color = "text-emerald-600";
+            let comment = "";
+
+            if (diff === 0) {
+                errorLevel = "最佳落子";
+                color = "text-emerald-600";
+                if (weightValue > 50) comment = "完美！你搶佔了重要的關鍵位置。";
+                else comment = "漂亮的一手！這是當前局勢下 AI 推薦的最佳解。";
+            } else if (diff > 0 && diff <= 15) {
+                errorLevel = "尚可";
+                color = "text-yellow-600";
+                comment = "這步棋還算穩健，但 AI 認為還有稍微更好的選擇。";
+            } else if (diff > 15 && diff <= 40) {
+                errorLevel = "失誤";
+                color = "text-orange-500";
+                if (weightValue === -20) comment = "小心！下在 C 位容易讓對手有機會在未來奪取角落。";
+                else comment = "這步棋稍微吃虧，可能幫對手打開了有利的落子點。";
+            } else if (diff > 40) {
+                errorLevel = "嚴重失誤";
+                color = "text-red-600";
+                if (weightValue <= -40) comment = "嚴重失誤！下在星位(X位)，這通常會直接把角落送給對手！";
+                else comment = "大漏著！這手棋極大地降低了你的勝率。";
+            }
+
+            resolve({
+                diff: diff,
+                errorLevel: errorLevel,
+                colorClass: color,
+                comment: comment,
+                bestMovePos: `${String.fromCharCode(97 + bestMoveData.c)}${bestMoveData.r + 1}`,
+                playerMovePos: `${String.fromCharCode(97 + playerC)}${playerR + 1}`
+            });
+        });
+    }
+
+    function displayCoachFeedback(analysis, r, c) {
+        scoreDiffEl.innerText = `-${analysis.diff}`;
+        scoreDiffEl.className = `font-bold ${analysis.colorClass}`;
+        
+        errorLevelEl.innerText = analysis.errorLevel;
+        errorLevelEl.className = `font-bold text-base ${analysis.colorClass}`;
+
+        let finalMsg = `<div><strong class="text-gray-900">落子在 ${analysis.playerMovePos}。</strong><br/>${analysis.comment}</div>`;
+        if (analysis.diff > 0) {
+            finalMsg += `<div class="mt-2 text-sm bg-blue-50 text-blue-800 p-2 rounded">💡 AI 算出的最佳落子點為 <strong>${analysis.bestMovePos}</strong></div>`;
+        }
+
+        setCoachMessage(finalMsg);
+    }
+
+    function setCoachMessage(htmlMsg) {
+        coachMsgEl.innerHTML = htmlMsg;
+        const box = document.getElementById('coach-message-box');
+        box.classList.remove('bg-blue-50');
+        void box.offsetWidth;
+        box.classList.add('bg-blue-50');
+        setTimeout(() => box.classList.remove('bg-blue-50'), 500);
+    }
+
+    /* --- GAS API 串接 --- */
+    function logToGas(analysis, r, c) {
+        const gasUrl = document.getElementById('gas-url').value.trim();
+        const enableLogging = document.getElementById('enable-logging').checked;
+        const statusEl = document.getElementById('gas-status');
+
+        if (!enableLogging || !gasUrl) return;
+
+        statusEl.innerText = "正在傳送資料...";
+        statusEl.className = "mt-2 text-xs font-semibold text-blue-500";
+
+        const payload = {
+            timestamp: new Date().toISOString(),
+            playerMove: `${String.fromCharCode(97 + c)}${r + 1}`,
+            scoreDiff: analysis.diff,
+            errorLevel: analysis.errorLevel,
+            coachComment: analysis.comment
+        };
+
+        fetch(gasUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            statusEl.innerText = "✓ 資料已成功記錄至試算表";
+            statusEl.className = "mt-2 text-xs font-semibold text-emerald-500";
+            setTimeout(() => statusEl.innerText = "", 3000);
+        })
+        .catch(error => {
+            console.error('GAS Error:', error);
+            statusEl.innerText = "❌ 傳送失敗，請檢查網路連線。";
+            statusEl.className = "mt-2 text-xs font-semibold text-red-500";
+        });
+    }
+
+    startGame();
+
+</script>
+</body>
+</html>
