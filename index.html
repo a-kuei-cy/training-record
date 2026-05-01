@@ -318,7 +318,7 @@
     function toggleMode() {
         if (currentMode === 'game') {
             // 切換至後台，需要密碼
-            const pwd = prompt("請輸入教師管理密碼 (預設：1234)");
+            const pwd = prompt("請輸入教師管理密碼");
             if (pwd !== ADMIN_PASSWORD && pwd !== null) {
                 alert("密碼錯誤，無法進入管理後台。");
                 return;
