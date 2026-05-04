@@ -3,59 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>黑白棋 AI 教練系統 v2.0</title>
+    <title>黑白棋 AI 教練系統 v4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* 棋盤排版終極修復：確保任何手機都不會扁塌 */
         .board-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr); 
-            gap: 2px;
-            background-color: #1a472a;
-            padding: 4px;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            aspect-ratio: 1 / 1;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
+            display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); 
+            gap: 2px; background-color: #1a472a; padding: 4px; border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); aspect-ratio: 1 / 1; width: 100%; max-width: 500px; margin: 0 auto;
         }
-        .cell {
-            background-color: #2e8b57;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-            border-radius: 2px;
-            transition: background-color 0.2s;
-            width: 100%;
-            height: 100%;
-        }
+        .cell { background-color: #2e8b57; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; border-radius: 2px; transition: background-color 0.2s; width: 100%; height: 100%; }
         .cell:hover { background-color: #3cb371; }
-        .piece {
-            width: 85%; height: 85%; border-radius: 50%;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-        }
+        .piece { width: 85%; height: 85%; border-radius: 50%; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); }
         .piece.black { background: linear-gradient(135deg, #444, #000); }
         .piece.white { background: linear-gradient(135deg, #fff, #ddd); }
-        .valid-move {
-            width: 25%; height: 25%; border-radius: 50%;
-            background-color: rgba(0, 0, 0, 0.3); pointer-events: none;
-        }
-        .hint-move {
-            width: 40%; height: 40%; border-radius: 50%;
-            background-color: rgba(250, 204, 21, 0.7);
-            box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
-            pointer-events: none; animation: pulseHint 1.5s infinite;
-        }
+        .valid-move { width: 25%; height: 25%; border-radius: 50%; background-color: rgba(0, 0, 0, 0.3); pointer-events: none; }
+        .hint-move { width: 40%; height: 40%; border-radius: 50%; background-color: rgba(250, 204, 21, 0.7); box-shadow: 0 0 10px rgba(250, 204, 21, 0.8); pointer-events: none; animation: pulseHint 1.5s infinite; }
         .coach-panel { background-image: linear-gradient(to right bottom, #ffffff, #f3f4f6); }
         @keyframes pulseHint { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
-        
-        /* 後台專用樣式 */
         .tab-active { border-bottom-color: #4f46e5; color: #4f46e5; font-weight: bold; }
         .tab-inactive { border-bottom-color: transparent; color: #6b7280; }
         .tab-inactive:hover { color: #374151; border-bottom-color: #d1d5db; }
@@ -74,7 +39,7 @@
                 <i data-lucide="brain-circuit" class="w-6 h-6 text-emerald-400"></i>
                 <span class="font-bold text-lg tracking-wide hidden sm:block">黑白棋 AI 教練與成績系統</span>
                 <span class="font-bold text-lg tracking-wide sm:hidden">AI 棋藝教練</span>
-                <span class="text-xs bg-emerald-700 text-emerald-100 px-2 py-0.5 rounded ml-2 font-mono">v2.0</span>
+                <span class="text-xs bg-emerald-700 text-emerald-100 px-2 py-0.5 rounded ml-2 font-mono">v4.0</span>
             </div>
             <div>
                 <button onclick="toggleMode()" id="mode-btn" class="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors">
@@ -178,18 +143,13 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px] relative flex flex-col">
             
-            <!-- 載入中動畫 -->
-            <div id="loading" style="display: none;" class="absolute inset-0 flex-col items-center justify-center bg-white z-20">
+            <div id="loading" style="display: none;" class="absolute inset-0 flex-col items-center justify-center bg-white/95 z-20">
                 <i data-lucide="loader-2" class="w-10 h-10 text-indigo-500 animate-spin mb-4"></i>
-                <span class="text-gray-500 font-medium mt-2">正在同步雲端資料庫...<br><span class="text-xs text-gray-400">(最多等待 10 秒)</span></span>
+                <span class="text-gray-600 font-bold text-lg mb-1">正在穿透雲端防火牆...</span>
             </div>
 
-            <!-- 強制防卡死錯誤面板 -->
-            <div id="error-state" style="display: none;" class="absolute inset-0 flex-col items-center justify-center bg-white z-30 p-6 text-center">
-                <!-- 錯誤由 JS 填入 -->
-            </div>
+            <div id="error-state" style="display: none;" class="absolute inset-0 flex-col items-center justify-center bg-white/95 z-30 p-6 text-center"></div>
             
-            <!-- 成績表 -->
             <div id="view-results" style="display: block;" class="overflow-x-auto max-h-[600px] w-full">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0"><tr><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">時間</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">班級</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">姓名</th><th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">玩家得分(黑)</th><th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">AI得分(白)</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">對戰結果</th></tr></thead>
@@ -197,7 +157,6 @@
                 </table>
             </div>
 
-            <!-- 分析表 -->
             <div id="view-analysis" style="display: none;" class="overflow-x-auto max-h-[600px] w-full">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0"><tr><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">時間</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">學生</th><th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">落子</th><th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">落差</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">狀態</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">分析詳情</th></tr></thead>
@@ -205,7 +164,6 @@
                 </table>
             </div>
 
-            <!-- 空資料狀態 -->
             <div id="empty-state" style="display: none;" class="absolute inset-0 flex-col items-center justify-center bg-white z-10">
                 <i data-lucide="database" class="w-12 h-12 text-gray-300 mb-4"></i>
                 <span class="text-gray-500 font-medium">資料庫目前是空的！請先讓學生玩一盤遊戲。</span>
@@ -220,7 +178,7 @@
     /* ==========================================
        系統整合與狀態控制
     ========================================== */
-    const ADMIN_PASSWORD = "S2860885"; // 🟢 教師密碼
+    const ADMIN_PASSWORD = "S2860885"; // 教師密碼
     let appCurrentMode = 'game';
     
     const savedUrl = localStorage.getItem('othelloGasUrl');
@@ -298,7 +256,7 @@
         board = Array(8).fill().map(() => Array(8).fill(EMPTY));
         board[3][3] = WHITE; board[3][4] = BLACK; board[4][3] = BLACK; board[4][4] = WHITE;
         currentPlayer = BLACK; isGameOver = false; aiComputing = false; currentHint = null;
-        setCoachMessage(`嗨，${localStorage.getItem('othelloName')}。遊戲開始！`);
+        setCoachMessage(`嗨，${localStorage.getItem('othelloName')}。遊戲開始！控制中心區域是前期的好策略。`);
         updateValidMoves(); renderBoard(); updateUI();
     }
     function updateValidMoves() {
@@ -460,7 +418,7 @@
 
 
     /* ==========================================
-       🟢 模組 2：後台讀取 (終極防卡死版)
+       🟢 後台 JSONP 穿透讀取技術 (無視教育版 CORS 防火牆)
     ========================================== */
     let adminTab = 'results', resData = [], anaData = [];
     
@@ -471,6 +429,39 @@
         document.getElementById('view-results').style.display = tab === 'results' ? 'block' : 'none';
         document.getElementById('view-analysis').style.display = tab === 'analysis' ? 'block' : 'none';
         filterTable();
+    }
+
+    // JSONP 跨域請求器
+    function fetchJSONP(url) {
+        return new Promise((resolve, reject) => {
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            const script = document.createElement('script');
+            
+            const timeout = setTimeout(() => {
+                cleanup();
+                reject(new Error("網路連線逾時，或此帳號無法存取該服務。"));
+            }, 10000); // 10秒逾時防卡死
+
+            window[callbackName] = function(data) {
+                cleanup();
+                resolve(data);
+            };
+
+            script.onerror = function() {
+                cleanup();
+                reject(new Error("載入腳本失敗，可能是被瀏覽器安全機制或廣告插件攔截。"));
+            };
+
+            function cleanup() {
+                clearTimeout(timeout);
+                delete window[callbackName];
+                if (script.parentNode) script.parentNode.removeChild(script);
+            }
+
+            const sep = url.includes('?') ? '&' : '?';
+            script.src = `${url}${sep}prefix=${callbackName}`;
+            document.body.appendChild(script);
+        });
     }
 
     async function fetchAdminData() {
@@ -490,51 +481,14 @@
         loadEl.style.display = 'flex'; // 顯示轉圈圈
         refIcon.classList.add('animate-spin');
 
-        // 🟢 設立 10 秒絕對安全防護網：如果 10 秒後還在轉圈圈，強行切斷並報錯
-        const safetyTimer = setTimeout(() => {
-            if (loadEl.style.display === 'flex') {
-                loadEl.style.display = 'none';
-                errEl.style.display = 'flex';
-                errEl.innerHTML = `
-                    <div class="flex flex-col items-center">
-                        <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mb-3"></i>
-                        <h3 class="text-xl font-bold text-gray-800">連線逾時或遭阻擋</h3>
-                        <p class="text-sm text-gray-600 mt-2 max-w-md font-medium">抓取資料超過 10 秒。這通常代表您的 Google Apps Script 權限設定錯誤，導致瀏覽器被 Google 阻擋登入。</p>
-                        <div class="mt-5 bg-red-50 text-red-800 p-5 rounded-xl text-sm text-left max-w-lg w-full border border-red-200 shadow-sm leading-relaxed">
-                            <strong class="text-base text-red-900 flex items-center gap-2 mb-2"><i data-lucide="wrench" class="w-4 h-4"></i> 必看解法 (100% 能解決)：</strong>
-                            1. 回到 Google Apps Script 點擊右上角「<strong>部署</strong>」>「<strong>管理部署作業</strong>」。<br>
-                            2. 點擊「✏️ 鉛筆圖示」進入編輯模式。<br>
-                            3. <strong>【版本】</strong>：下拉選擇「<strong>建立新版本</strong>」。<br>
-                            4. <strong>【誰可以存取】</strong>：<span class="bg-yellow-200 px-1 font-bold text-red-600">務必改成「所有人 (Anyone)」</span>。<br>
-                            5. 點擊部署，然後回到這裡再試一次！
-                        </div>
-                    </div>
-                `;
-                lucide.createIcons();
-                refIcon.classList.remove('animate-spin');
-            }
-        }, 10000); // 10秒
-
         try {
             const sep = url.includes('?') ? '&' : '?';
             
-            // 開始抓取
-            const res1 = await fetch(`${url}${sep}action=getResults`);
-            const res2 = await fetch(`${url}${sep}action=getAnalysis`);
-
-            clearTimeout(safetyTimer); // 成功回來了，取消倒數計時炸彈
-
-            const text1 = await res1.text();
-            const text2 = await res2.text();
-
-            let json1, json2;
-            try {
-                json1 = JSON.parse(text1);
-                json2 = JSON.parse(text2);
-            } catch (parseError) {
-                // 回來的不是 JSON，通常是一堆 Google 登入網頁的 HTML 原始碼
-                throw new Error("權限錯誤：無法解析資料。您的 Apps Script 未開放給所有人，被 Google 強制轉向登入畫面。");
-            }
+            // 🟢 使用 JSONP 穿透技術並行抓取，繞過 Google 教育版的限制
+            const [json1, json2] = await Promise.all([
+                fetchJSONP(`${url}${sep}action=getResults`),
+                fetchJSONP(`${url}${sep}action=getAnalysis`)
+            ]);
             
             resData = Array.isArray(json1) && json1.length>0 && json1[0]['時間'] ? json1 : [];
             anaData = Array.isArray(json2) && json2.length>0 && json2[0]['時間'] ? json2 : [];
@@ -545,28 +499,25 @@
             loadEl.style.display = 'none';
 
             if(resData.length === 0 && anaData.length === 0) { 
-                emptyEl.style.display = 'flex'; // 顯示無資料
+                emptyEl.style.display = 'flex'; 
             } else {
-                switchAdminTab(adminTab); // 恢復表格顯示
+                switchAdminTab(adminTab); 
             }
         } catch(e) { 
-            clearTimeout(safetyTimer); // 出錯了，取消計時
-            console.error("Fetch 錯誤：", e); 
-            loadEl.style.display = 'none'; // 關閉轉圈
-            errEl.style.display = 'flex';  // 顯示錯誤面板
+            console.error("JSONP Fetch 錯誤：", e); 
+            loadEl.style.display = 'none'; 
+            errEl.style.display = 'flex';  
             
             errEl.innerHTML = `
                 <div class="flex flex-col items-center">
-                    <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mb-3"></i>
-                    <h3 class="text-xl font-bold text-gray-800">資料庫讀取失敗</h3>
+                    <i data-lucide="alert-triangle" class="w-16 h-16 text-red-500 mb-3"></i>
+                    <h3 class="text-2xl font-bold text-gray-800">資料庫讀取失敗 (權限遭阻擋)</h3>
                     <p class="text-sm text-gray-600 mt-2 max-w-md font-medium">${e.message}</p>
                     <div class="mt-5 bg-red-50 text-red-800 p-5 rounded-xl text-sm text-left max-w-lg w-full border border-red-200 shadow-sm leading-relaxed">
-                        <strong class="text-base text-red-900 flex items-center gap-2 mb-2"><i data-lucide="wrench" class="w-4 h-4"></i> 必看解法 (100% 能解決)：</strong>
-                        1. 回到 Google Apps Script 點擊右上角「<strong>部署</strong>」>「<strong>管理部署作業</strong>」。<br>
-                        2. 點擊「✏️ 鉛筆圖示」進入編輯模式。<br>
-                        3. <strong>【版本】</strong>：下拉選擇「<strong>建立新版本</strong>」。<br>
-                        4. <strong>【誰可以存取】</strong>：<span class="bg-yellow-200 px-1 font-bold text-red-600">務必改成「所有人 (Anyone)」</span>。<br>
-                        5. 點擊部署，然後回到這裡再試一次！
+                        <strong class="text-lg text-red-900 flex items-center gap-2 mb-2"><i data-lucide="wrench" class="w-5 h-5"></i> 必看解法 (100% 能解決)：</strong>
+                        1. 由於您使用的是學校教育帳號 (<code>.edu.tw</code>)，Google 預設會阻擋公開資料。<br>
+                        2. <strong>請確保您在目前的瀏覽器中，已經登入該 <code>@teacher.sces.cy.edu.tw</code> 帳號。</strong><br>
+                        3. 如果確定登入了還是不行，請回到 Google Apps Script 重新部署，並確認「誰可以存取」是選擇<strong>「所有人」</strong>。
                     </div>
                 </div>
             `;
