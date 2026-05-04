@@ -11,7 +11,7 @@
         .board-grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr); /* 🟢 修復：強制手機瀏覽器撐開列高 */
+            grid-template-rows: repeat(8, 1fr); /* 強制手機瀏覽器撐開列高 */
             gap: 2px;
             background-color: #1a472a;
             padding: 4px;
@@ -80,7 +80,8 @@
             </div>
             <div>
                 <button onclick="toggleMode()" id="mode-btn" class="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors">
-                    <i data-lucide="shield-check" class="w-4 h-4 text-indigo-300"></i> <span id="mode-text">切換至教師後台</span>
+                    <i data-lucide="shield-check" class="w-4 h-4 text-indigo-300" id="mode-icon"></i> 
+                    <span id="mode-text">切換至教師後台</span>
                 </button>
             </div>
         </div>
@@ -88,10 +89,10 @@
 </nav>
 
 <!-- ==========================================
-     模組 1：學生遊戲區 (Game View)
+     模組 1：學生遊戲區 (前台)
 =========================================== -->
 <div id="game-view" class="block">
-    <!-- 玩家登錄彈出視窗 (Modal) -->
+    <!-- 玩家登錄彈出視窗 -->
     <div id="login-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity">
         <div class="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full mx-4 shadow-2xl">
             <div class="flex justify-center mb-4">
@@ -123,7 +124,6 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
             <!-- 遊戲區 -->
             <div class="lg:col-span-7 flex flex-col items-center relative">
-                <!-- 分數板 -->
                 <div class="flex justify-between w-full max-w-[500px] mb-4 bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-200">
                     <div class="flex items-center gap-2 md:gap-3">
                         <div class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-gray-700 to-black shadow-md border-2 border-emerald-500" id="turn-indicator-black"></div>
@@ -135,10 +135,8 @@
                     </div>
                 </div>
 
-                <!-- 棋盤 -->
                 <div id="board" class="board-grid"></div>
 
-                <!-- 控制列 -->
                 <div class="mt-4 flex gap-4 w-full max-w-[500px]">
                     <button onclick="startGame()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow flex items-center justify-center gap-2 transition-colors">
                         <i data-lucide="rotate-ccw" class="w-5 h-5"></i> 重新開始
@@ -180,7 +178,6 @@
                     <div id="coach-message-box" class="flex-1 bg-white bg-opacity-80 rounded-xl p-4 border border-blue-100 shadow-inner mb-4 min-h-[140px] text-base text-gray-700 leading-relaxed overflow-y-auto">
                         <div id="coach-message">請開始下棋，我會分析您的每一步，並自動記錄成績至後台。</div>
                     </div>
-                    <!-- 發問區 -->
                     <div class="border-t border-gray-200 pt-4 relative z-10">
                         <div class="flex flex-col gap-2">
                             <button onclick="askBestMove()" class="text-left px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-sm rounded-lg transition-colors flex items-center gap-2">
@@ -198,7 +195,7 @@
 </div>
 
 <!-- ==========================================
-     模組 2：教師後台區 (Admin View)
+     模組 2：教師後台區 (管理儀表板)
 =========================================== -->
 <div id="admin-view" class="hidden bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -215,7 +212,7 @@
                 <label class="block text-sm font-bold text-gray-700 mb-1">系統資料庫來源 (Google Apps Script URL)</label>
                 <div class="flex gap-2">
                     <input type="text" id="admin-gas-url" value="https://script.google.com/macros/s/AKfycbwjGt1PMwrTG1Tpk3i796YcsppSJvLw6Yu81Av7evKRfdw4DGUTlwz6nyHz-KcqRKzy/exec" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm font-mono">
-                    <button onclick="saveGasUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">儲存</button>
+                    <button onclick="saveGasUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">儲存並讀取</button>
                 </div>
                 <p class="text-xs text-gray-500 mt-1">此連結共用於「學生成績上傳」與「後台資料讀取」。</p>
             </div>
@@ -224,10 +221,10 @@
         <!-- 搜尋與過濾 -->
         <div class="mb-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div class="flex border-b border-gray-200 w-full sm:w-auto">
-                <button onclick="switchAdminTab('results')" id="tab-results" class="px-6 py-3 border-b-2 tab-active text-sm flex items-center gap-2 transition-all">
+                <button onclick="switchAdminTab('results')" id="tab-results" class="px-4 md:px-6 py-3 border-b-2 tab-active text-sm flex items-center gap-2 transition-all">
                     <i data-lucide="trophy" class="w-4 h-4"></i> 對局成績排名
                 </button>
-                <button onclick="switchAdminTab('analysis')" id="tab-analysis" class="px-6 py-3 border-b-2 tab-inactive text-sm flex items-center gap-2 transition-all">
+                <button onclick="switchAdminTab('analysis')" id="tab-analysis" class="px-4 md:px-6 py-3 border-b-2 tab-inactive text-sm flex items-center gap-2 transition-all">
                     <i data-lucide="activity" class="w-4 h-4"></i> 學生失誤分析
                 </button>
             </div>
@@ -236,31 +233,37 @@
                     <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-gray-400"></i>
                     <input type="text" id="search-input" onkeyup="filterTable()" placeholder="搜尋班級或姓名..." class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm shadow-sm">
                 </div>
-                <button onclick="fetchAdminData()" class="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 shadow-sm transition-colors">
+                <button onclick="fetchAdminData()" class="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 shadow-sm transition-colors whitespace-nowrap">
                     <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i> 更新
                 </button>
             </div>
         </div>
 
         <!-- 資料顯示區 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px] relative">
+            
             <!-- 載入中動畫 -->
-            <div id="loading" class="flex flex-col items-center justify-center py-20 hidden">
+            <div id="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-20 hidden">
                 <i data-lucide="loader-2" class="w-10 h-10 text-indigo-500 animate-spin mb-4"></i>
                 <span class="text-gray-500 font-medium">正在同步雲端資料庫...</span>
             </div>
+
+            <!-- 防卡死：錯誤訊息提示區 -->
+            <div id="error-state" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-20 hidden p-6 text-center">
+                <!-- 錯誤訊息會由 JavaScript 寫入 -->
+            </div>
             
             <!-- 成績表 -->
-            <div id="view-results" class="overflow-x-auto max-h-[500px]">
+            <div id="view-results" class="overflow-x-auto max-h-[600px] w-full">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">時間</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">班級</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">姓名</th>
-                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase">玩家得分 (黑)</th>
-                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase">AI得分 (白)</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">對戰結果</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">時間</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">班級</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">姓名</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">玩家得分(黑)</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">AI得分(白)</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">對戰結果</th>
                         </tr>
                     </thead>
                     <tbody id="results-body" class="bg-white divide-y divide-gray-200"></tbody>
@@ -268,16 +271,16 @@
             </div>
 
             <!-- 分析表 -->
-            <div id="view-analysis" class="overflow-x-auto max-h-[500px] hidden">
+            <div id="view-analysis" class="overflow-x-auto max-h-[600px] w-full hidden">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">時間</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">學生</th>
-                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase">落子</th>
-                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase">落差</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">狀態</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">分析詳情</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">時間</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">學生</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">落子</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">落差</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">狀態</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">分析詳情</th>
                         </tr>
                     </thead>
                     <tbody id="analysis-body" class="bg-white divide-y divide-gray-200"></tbody>
@@ -285,7 +288,7 @@
             </div>
 
             <!-- 無資料 -->
-            <div id="empty-state" class="flex flex-col items-center justify-center py-20 hidden">
+            <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-10 hidden">
                 <i data-lucide="database" class="w-12 h-12 text-gray-300 mb-4"></i>
                 <span class="text-gray-500 font-medium">目前尚無任何紀錄</span>
             </div>
@@ -298,93 +301,77 @@
     lucide.createIcons();
 
     /* ==========================================
-       通用設定與模式切換邏輯
+       系統整合設定與模式切換邏輯
     ========================================== */
     const ADMIN_PASSWORD = "S2860885"; // 🟢 可以在此修改教師密碼
-    let currentMode = 'game'; // 'game' 或是 'admin'
     
     // 初始化載入儲存的 URL
     const savedUrl = localStorage.getItem('othelloGasUrl');
     if (savedUrl) { document.getElementById('admin-gas-url').value = savedUrl; }
 
-    // 取得當前有效的 GAS URL
     function getGasUrl() { return document.getElementById('admin-gas-url').value.trim(); }
-    
     function saveGasUrl() {
         localStorage.setItem('othelloGasUrl', getGasUrl());
-        alert('雲端連結已儲存！');
         fetchAdminData();
     }
 
-    // 🟢 修復：重寫按鈕 HTML 以避免 Lucide SVG 替換造成的 JS 報錯
+    // 防 BUG 模式切換
     function toggleMode() {
-        if (currentMode === 'game') {
-            // 切換至後台，需要密碼
-            const pwd = prompt("請輸入教師管理密碼");
-            if (pwd !== ADMIN_PASSWORD && pwd !== null) {
+        const adminView = document.getElementById('admin-view');
+        const gameView = document.getElementById('game-view');
+        const isGameMode = adminView.classList.contains('hidden');
+
+        if (isGameMode) {
+            // 切換至後台
+            const pwd = prompt("請輸入教師管理密碼 (預設：1234)");
+            if (pwd === null) return; 
+            if (pwd !== ADMIN_PASSWORD) {
                 alert("密碼錯誤，無法進入管理後台。");
                 return;
-            } else if (pwd === null) { return; } // 按下取消
+            }
             
-            currentMode = 'admin'; // 狀態更新
-
-            document.getElementById('game-view').classList.add('hidden');
-            document.getElementById('admin-view').classList.remove('hidden');
+            gameView.classList.add('hidden');
+            adminView.classList.remove('hidden');
+            document.getElementById('login-modal').classList.add('hidden');
             
-            // 安全替換按鈕內容
             document.getElementById('mode-btn').innerHTML = `<i data-lucide="gamepad-2" class="w-4 h-4 text-indigo-300"></i> <span>返回學生遊戲區</span>`;
-            document.getElementById('login-modal').classList.add('hidden'); // 隱藏學生登入框
-            
-            lucide.createIcons(); // 重新渲染新按鈕的 icon
-            fetchAdminData(); // 自動載入資料
+            lucide.createIcons();
+            fetchAdminData();
         } else {
             // 切換回遊戲區
-            currentMode = 'game'; // 狀態更新
-
-            document.getElementById('game-view').classList.remove('hidden');
-            document.getElementById('admin-view').classList.add('hidden');
+            adminView.classList.add('hidden');
+            gameView.classList.remove('hidden');
             
-            // 安全替換按鈕內容
             document.getElementById('mode-btn').innerHTML = `<i data-lucide="shield-check" class="w-4 h-4 text-indigo-300"></i> <span>切換至教師後台</span>`;
-            
-            lucide.createIcons(); // 重新渲染新按鈕的 icon
-            checkLoginStatus(); // 檢查學生是否需要重新登入
+            lucide.createIcons();
+            checkLoginStatus(); 
         }
     }
-
 
     /* ==========================================
        模組 1：學生遊戲區核心邏輯
     ========================================== */
     const BLACK = 1, WHITE = 2, EMPTY = 0;
     const WEIGHTS = [
-        [100, -20,  10,   5,   5,  10, -20, 100],
-        [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
-        [ 10,  -2,   1,   1,   1,   1,  -2,  10],
-        [  5,  -2,   1,   0,   0,   1,  -2,   5],
-        [  5,  -2,   1,   0,   0,   1,  -2,   5],
-        [ 10,  -2,   1,   1,   1,   1,  -2,  10],
-        [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
-        [100, -20,  10,   5,   5,  10, -20, 100]
+        [100, -20,  10,   5,   5,  10, -20, 100], [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
+        [ 10,  -2,   1,   1,   1,   1,  -2,  10], [  5,  -2,   1,   0,   0,   1,  -2,   5],
+        [  5,  -2,   1,   0,   0,   1,  -2,   5], [ 10,  -2,   1,   1,   1,   1,  -2,  10],
+        [-20, -50,  -2,  -2,  -2,  -2, -50, -20], [100, -20,  10,   5,   5,  10, -20, 100]
     ];
     const DIRS = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
 
     let board = [], currentPlayer = BLACK, validMoves = [];
     let isGameOver = false, aiComputing = false, currentHint = null, isLoggedin = false;
 
-    // 登錄系統
     function checkLoginStatus() {
-        if (currentMode === 'admin') return; // 在後台不跳登入框
+        if (!document.getElementById('admin-view').classList.contains('hidden')) return; 
         const pClass = localStorage.getItem('othelloClass');
         const pName = localStorage.getItem('othelloName');
         if (pClass && pName) {
-            isLoggedin = true;
-            document.getElementById('login-modal').classList.add('hidden');
-            loadPlayerData(pClass, pName);
-            startGame();
+            isLoggedin = true; document.getElementById('login-modal').classList.add('hidden');
+            loadPlayerData(pClass, pName); startGame();
         } else {
-            isLoggedin = false;
-            showLoginModal();
+            isLoggedin = false; showLoginModal();
         }
     }
     function showLoginModal() {
@@ -401,22 +388,15 @@
         if (localStorage.getItem('othelloName') !== iName || localStorage.getItem('othelloClass') !== iClass) {
             localStorage.setItem('othelloBestScore', '0');
         }
-        localStorage.setItem('othelloClass', iClass);
-        localStorage.setItem('othelloName', iName);
-        
-        document.getElementById('login-error').classList.add('hidden');
-        document.getElementById('login-modal').classList.add('hidden');
-        isLoggedin = true;
-        loadPlayerData(iClass, iName);
-        startGame();
+        localStorage.setItem('othelloClass', iClass); localStorage.setItem('othelloName', iName);
+        document.getElementById('login-error').classList.add('hidden'); document.getElementById('login-modal').classList.add('hidden');
+        isLoggedin = true; loadPlayerData(iClass, iName); startGame();
     }
     function loadPlayerData(pClass, pName) {
-        document.getElementById('display-class').innerText = pClass;
-        document.getElementById('display-name').innerText = pName;
+        document.getElementById('display-class').innerText = pClass; document.getElementById('display-name').innerText = pName;
         document.getElementById('best-score-display').innerText = localStorage.getItem('othelloBestScore') || '0';
     }
 
-    // 遊戲本體
     function startGame() {
         if (!isLoggedin) return;
         board = Array(8).fill().map(() => Array(8).fill(EMPTY));
@@ -440,8 +420,7 @@
         return flips;
     }
     function renderBoard() {
-        const boardEl = document.getElementById('board');
-        boardEl.innerHTML = '';
+        const boardEl = document.getElementById('board'); boardEl.innerHTML = '';
         for (let r=0; r<8; r++) {
             for (let c=0; c<8; c++) {
                 const cell = document.createElement('div'); cell.className = 'cell'; cell.onclick = () => onCellClick(r, c);
@@ -476,7 +455,6 @@
         setCoachMessage(`<div><strong>落子 ${analysis.playerMovePos}。判定：<span class="${analysis.colorClass}">${analysis.errorLevel}</span></strong><br/>${analysis.comment}</div>` + 
                        (analysis.diff > 0 ? `<div class="mt-2 text-sm bg-blue-50 text-blue-800 p-2 rounded">💡 AI 算出的最佳落子點為 <strong>${analysis.bestMovePos}</strong></div>` : ""));
         executeMove(r, c, flips);
-        
         uploadToGas({ type: 'analysis', playerMove: `${String.fromCharCode(97+c)}${r+1}`, scoreDiff: analysis.diff, errorLevel: analysis.errorLevel, coachComment: analysis.comment });
         setTimeout(aiTurn, 800);
     }
@@ -506,8 +484,7 @@
         let bScore = parseInt(localStorage.getItem('othelloBestScore')||'0');
         let msg = `<strong>遊戲結束！${res}</strong><br>成績：${bC} 分。`;
         if (bC > bScore) {
-            localStorage.setItem('othelloBestScore', bC);
-            document.getElementById('best-score-display').innerText = bC;
+            localStorage.setItem('othelloBestScore', bC); document.getElementById('best-score-display').innerText = bC;
             msg += `<br><span class="text-emerald-600 font-bold">🎉 恭喜打破個人最佳紀錄！</span>`;
         }
         setCoachMessage(msg);
@@ -519,8 +496,6 @@
         box.classList.remove('bg-blue-50'); void box.offsetWidth; box.classList.add('bg-blue-50');
         setTimeout(() => box.classList.remove('bg-blue-50'), 500);
     }
-
-    /* --- 學生 AI 提問 --- */
     function askBestMove() {
         if(!isLoggedin){showLoginModal();return;} if(isGameOver || currentPlayer!==BLACK || aiComputing) return;
         setCoachMessage("教練深度運算中...");
@@ -528,8 +503,7 @@
             const b = getBestMoveMinimax(board, BLACK, 4);
             if(b) {
                 currentHint = {r: b.r, c: b.c};
-                setCoachMessage(`💡 <strong>建議：</strong>落子 <strong>${String.fromCharCode(97+b.c)}${b.r+1}</strong>。（已為您閃爍黃燈標示）`);
-                renderBoard();
+                setCoachMessage(`💡 <strong>建議：</strong>落子 <strong>${String.fromCharCode(97+b.c)}${b.r+1}</strong>。（已為您閃爍黃燈標示）`); renderBoard();
             }
         }, 50);
     }
@@ -588,40 +562,89 @@
     function uploadToGas(payload) {
         const url = getGasUrl(); if(!url || !isLoggedin) return;
         const data = { ...payload, timestamp: new Date().toISOString(), playerClass: localStorage.getItem('othelloClass'), playerName: localStorage.getItem('othelloName') };
-        fetch(url, { method: 'POST', mode: 'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).catch(e=>console.error('GAS Error', e));
+        fetch(url, { method: 'POST', mode: 'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).catch(e=>console.error('GAS POST Error', e));
     }
 
-
     /* ==========================================
-       模組 2：教師後台核心邏輯
+       模組 2：教師後台核心邏輯與防卡死機制
     ========================================== */
     let adminTab = 'results', resData = [], anaData = [];
     
     function switchAdminTab(tab) {
         adminTab = tab;
-        document.getElementById('tab-results').className = `px-6 py-3 border-b-2 text-sm flex items-center gap-2 transition-all ${tab==='results'?'tab-active':'tab-inactive'}`;
-        document.getElementById('tab-analysis').className = `px-6 py-3 border-b-2 text-sm flex items-center gap-2 transition-all ${tab==='analysis'?'tab-active':'tab-inactive'}`;
+        document.getElementById('tab-results').className = `px-4 md:px-6 py-3 border-b-2 text-sm flex items-center gap-2 transition-all ${tab==='results'?'tab-active':'tab-inactive'}`;
+        document.getElementById('tab-analysis').className = `px-4 md:px-6 py-3 border-b-2 text-sm flex items-center gap-2 transition-all ${tab==='analysis'?'tab-active':'tab-inactive'}`;
         document.getElementById('view-results').classList.toggle('hidden', tab!=='results');
         document.getElementById('view-analysis').classList.toggle('hidden', tab!=='analysis');
         filterTable();
     }
 
+    // 逾時控制器
+    async function fetchWithTimeout(resource, options = {}) {
+        const { timeout = 12000 } = options;
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        const response = await fetch(resource, { ...options, signal: controller.signal });
+        clearTimeout(id);
+        return response;
+    }
+
+    // 讀取資料
     async function fetchAdminData() {
         const url = getGasUrl(); if(!url) return;
-        const loadEl = document.getElementById('loading'), emptyEl = document.getElementById('empty-state'), refIcon = document.getElementById('refresh-icon');
-        loadEl.classList.remove('hidden'); emptyEl.classList.add('hidden');
-        document.getElementById('view-results').classList.add('hidden'); document.getElementById('view-analysis').classList.add('hidden');
+        const loadEl = document.getElementById('loading'), emptyEl = document.getElementById('empty-state'), errEl = document.getElementById('error-state'), refIcon = document.getElementById('refresh-icon');
+        
+        loadEl.classList.remove('hidden'); emptyEl.classList.add('hidden'); errEl.classList.add('hidden');
         refIcon.classList.add('animate-spin');
 
         try {
-            const [r1, r2] = await Promise.all([ fetch(`${url}?action=getResults`).then(r=>r.json()), fetch(`${url}?action=getAnalysis`).then(r=>r.json()) ]);
-            resData = Array.isArray(r1) && r1.length>0 && r1[0]['時間'] ? r1 : [];
-            anaData = Array.isArray(r2) && r2.length>0 && r2[0]['時間'] ? r2 : [];
+            const sep = url.includes('?') ? '&' : '?';
+            const [res1, res2] = await Promise.all([ 
+                fetchWithTimeout(`${url}${sep}action=getResults`), 
+                fetchWithTimeout(`${url}${sep}action=getAnalysis`) 
+            ]);
+
+            const text1 = await res1.text();
+            const text2 = await res2.text();
+
+            try {
+                const json1 = JSON.parse(text1);
+                const json2 = JSON.parse(text2);
+                resData = Array.isArray(json1) && json1.length>0 && json1[0]['時間'] ? json1 : [];
+                anaData = Array.isArray(json2) && json2.length>0 && json2[0]['時間'] ? json2 : [];
+            } catch (parseError) {
+                throw new Error("存取被拒絕。這通常是因為 Google Apps Script 沒有開放權限給「所有人」。");
+            }
             
             renderAdminResults(); renderAdminAnalysis(); switchAdminTab(adminTab);
-            if(resData.length===0 && anaData.length===0) { emptyEl.classList.remove('hidden'); document.getElementById('view-results').classList.add('hidden'); document.getElementById('view-analysis').classList.add('hidden'); }
-        } catch(e) { console.error(e); alert("無法抓取資料，請確認 GAS URL 是否正確且支援跨域。"); } 
-        finally { loadEl.classList.add('hidden'); refIcon.classList.remove('animate-spin'); }
+            
+            if(resData.length===0 && anaData.length===0) { 
+                emptyEl.classList.remove('hidden'); 
+                document.getElementById('view-results').classList.add('hidden'); 
+                document.getElementById('view-analysis').classList.add('hidden'); 
+            }
+        } catch(e) { 
+            console.error(e); 
+            document.getElementById('view-results').classList.add('hidden');
+            document.getElementById('view-analysis').classList.add('hidden');
+            errEl.classList.remove('hidden');
+            errEl.innerHTML = `
+                <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mb-3"></i>
+                <h3 class="text-lg font-bold text-gray-800">資料讀取失敗</h3>
+                <p class="text-sm text-gray-600 mt-2 max-w-sm">${e.message === 'Failed to fetch' || e.name === 'AbortError' ? '網路連線逾時，或存取權限遭到阻擋。' : e.message}</p>
+                <div class="mt-4 bg-red-50 text-red-800 p-4 rounded-xl text-xs text-left max-w-md w-full border border-red-100">
+                    <strong>💡 常見解法：</strong><br>
+                    1. 檢查 Apps Script 網址是否正確。<br>
+                    2. 前往 Google Apps Script 點擊右上角「部署」>「管理部署作業」。<br>
+                    3. 將「誰可以存取 (Who has access)」設定為 <strong>「所有人 (Anyone)」</strong>。<br>
+                    4. 點擊「建立新版本」後重新部署。
+                </div>
+            `;
+            lucide.createIcons();
+        } finally { 
+            loadEl.classList.add('hidden'); 
+            refIcon.classList.remove('animate-spin'); 
+        }
     }
 
     function renderAdminResults() {
@@ -667,7 +690,6 @@
 
     // 啟動系統
     window.onload = checkLoginStatus;
-
 </script>
 </body>
 </html>
