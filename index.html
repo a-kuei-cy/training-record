@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>黑白棋 AI 教練系統 v4.0</title>
+    <title>黑白棋 AI 教練系統 v5.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -21,13 +21,6 @@
         .hint-move { width: 40%; height: 40%; border-radius: 50%; background-color: rgba(250, 204, 21, 0.7); box-shadow: 0 0 10px rgba(250, 204, 21, 0.8); pointer-events: none; animation: pulseHint 1.5s infinite; }
         .coach-panel { background-image: linear-gradient(to right bottom, #ffffff, #f3f4f6); }
         @keyframes pulseHint { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
-        .tab-active { border-bottom-color: #4f46e5; color: #4f46e5; font-weight: bold; }
-        .tab-inactive { border-bottom-color: transparent; color: #6b7280; }
-        .tab-inactive:hover { color: #374151; border-bottom-color: #d1d5db; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800">
@@ -39,12 +32,12 @@
                 <i data-lucide="brain-circuit" class="w-6 h-6 text-emerald-400"></i>
                 <span class="font-bold text-lg tracking-wide hidden sm:block">黑白棋 AI 教練與成績系統</span>
                 <span class="font-bold text-lg tracking-wide sm:hidden">AI 棋藝教練</span>
-                <span class="text-xs bg-emerald-700 text-emerald-100 px-2 py-0.5 rounded ml-2 font-mono">v4.0</span>
+                <span class="text-xs bg-emerald-700 text-emerald-100 px-2 py-0.5 rounded ml-2 font-mono">v5.1</span>
             </div>
             <div>
                 <button onclick="toggleMode()" id="mode-btn" class="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors">
                     <i data-lucide="shield-check" class="w-4 h-4 text-indigo-300" id="mode-icon"></i> 
-                    <span id="mode-text">切換至教師後台</span>
+                    <span id="mode-text">進入教師控制台</span>
                 </button>
             </div>
         </div>
@@ -61,7 +54,7 @@
             <h2 class="text-2xl font-bold text-center text-gray-900 mb-2">玩家登錄</h2>
             <p class="text-center text-gray-500 mb-6 text-sm">請先輸入班級與姓名，才能開始遊戲喔！</p>
             <div class="space-y-4">
-                <div><label class="block text-sm font-semibold text-gray-700 mb-1">班級</label><input type="text" id="modal-class" placeholder="例如：一年甲班" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50"></div>
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1">班級</label><input type="text" id="modal-class" placeholder="例如：301" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50"></div>
                 <div><label class="block text-sm font-semibold text-gray-700 mb-1">姓名</label><input type="text" id="modal-name" placeholder="例如：王小明" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50"></div>
                 <p id="login-error" class="text-red-500 text-sm hidden text-center font-medium mt-2">⚠️ 請完整填寫班級與姓名</p>
                 <button onclick="handleLogin()" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 text-lg"><i data-lucide="play" class="w-5 h-5"></i> 進入遊戲</button>
@@ -113,61 +106,43 @@
 </div>
 
 <!-- ==========================================
-     模組 2：教師管理後台
+     模組 2：教師控制台 (V5.1 一鍵發射版)
 =========================================== -->
 <div id="admin-view" style="display: none;" class="bg-gray-50 min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><i data-lucide="layout-dashboard" class="text-indigo-600"></i> 教師管理儀表板</h2>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center justify-center gap-3">
+            <i data-lucide="layout-dashboard" class="w-8 h-8 text-indigo-600"></i> 教師控制中心
+        </h2>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
-            <div class="flex-shrink-0 bg-indigo-100 p-3 rounded-full"><i data-lucide="link" class="w-6 h-6 text-indigo-600"></i></div>
-            <div class="flex-grow w-full">
-                <label class="block text-sm font-bold text-gray-700 mb-1">系統資料庫來源 (Google Apps Script URL)</label>
-                <div class="flex gap-2">
-                    <input type="text" id="admin-gas-url" value="https://script.google.com/macros/s/AKfycbwjGt1PMwrTG1Tpk3i796YcsppSJvLw6Yu81Av7evKRfdw4DGUTlwz6nyHz-KcqRKzy/exec" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm font-mono">
-                    <button onclick="saveGasUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">儲存並讀取</button>
+        <!-- 設定區塊 (預設已寫死您的專屬網址) -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-gray-200 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-4">
+                <i data-lucide="settings" class="text-gray-500"></i> 系統連結狀態 (已自動帶入)
+            </h3>
+            
+            <div class="space-y-6 opacity-70">
+                <!-- 接收成績的 GAS URL -->
+                <div>
+                    <label class="block text-sm font-bold text-indigo-700 mb-2">1. 學生成績上傳系統 (Apps Script)</label>
+                    <input type="text" id="admin-gas-url" value="https://script.google.com/macros/s/AKfycbwjGt1PMwrTG1Tpk3i796YcsppSJvLw6Yu81Av7evKRfdw4DGUTlwz6nyHz-KcqRKzy/exec" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm font-mono bg-gray-50" readonly>
+                </div>
+
+                <!-- 觀看成績的 Sheet URL -->
+                <div>
+                    <label class="block text-sm font-bold text-emerald-700 mb-2">2. 教師觀看成績系統 (Google 試算表)</label>
+                    <input type="text" id="admin-sheet-url" value="https://docs.google.com/spreadsheets/d/15Xsei7BAYhl-99bECslp4KSee-QwSbs5anMvXXU8mAk/edit?gid=594448520#gid=594448520" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-mono bg-gray-50" readonly>
                 </div>
             </div>
         </div>
 
-        <div class="mb-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div class="flex border-b border-gray-200 w-full sm:w-auto">
-                <button onclick="switchAdminTab('results')" id="tab-results" class="px-4 md:px-6 py-3 border-b-2 tab-active text-sm flex items-center gap-2 transition-all"><i data-lucide="trophy" class="w-4 h-4"></i> 對局成績排名</button>
-                <button onclick="switchAdminTab('analysis')" id="tab-analysis" class="px-4 md:px-6 py-3 border-b-2 tab-inactive text-sm flex items-center gap-2 transition-all"><i data-lucide="activity" class="w-4 h-4"></i> 學生失誤分析</button>
-            </div>
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-                <div class="relative flex-1 sm:w-64"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-gray-400"></i><input type="text" id="search-input" onkeyup="filterTable()" placeholder="搜尋班級或姓名..." class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm shadow-sm"></div>
-                <button onclick="fetchAdminData()" class="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 shadow-sm transition-colors whitespace-nowrap"><i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i> 更新</button>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px] relative flex flex-col">
-            
-            <div id="loading" style="display: none;" class="absolute inset-0 flex-col items-center justify-center bg-white/95 z-20">
-                <i data-lucide="loader-2" class="w-10 h-10 text-indigo-500 animate-spin mb-4"></i>
-                <span class="text-gray-600 font-bold text-lg mb-1">正在穿透雲端防火牆...</span>
-            </div>
-
-            <div id="error-state" style="display: none;" class="absolute inset-0 flex-col items-center justify-center bg-white/95 z-30 p-6 text-center"></div>
-            
-            <div id="view-results" style="display: block;" class="overflow-x-auto max-h-[600px] w-full">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0"><tr><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">時間</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">班級</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">姓名</th><th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">玩家得分(黑)</th><th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">AI得分(白)</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">對戰結果</th></tr></thead>
-                    <tbody id="results-body" class="bg-white divide-y divide-gray-200"></tbody>
-                </table>
-            </div>
-
-            <div id="view-analysis" style="display: none;" class="overflow-x-auto max-h-[600px] w-full">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0"><tr><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">時間</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">學生</th><th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">落子</th><th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase whitespace-nowrap">落差</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">狀態</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase whitespace-nowrap">分析詳情</th></tr></thead>
-                    <tbody id="analysis-body" class="bg-white divide-y divide-gray-200"></tbody>
-                </table>
-            </div>
-
-            <div id="empty-state" style="display: none;" class="absolute inset-0 flex-col items-center justify-center bg-white z-10">
-                <i data-lucide="database" class="w-12 h-12 text-gray-300 mb-4"></i>
-                <span class="text-gray-500 font-medium">資料庫目前是空的！請先讓學生玩一盤遊戲。</span>
-            </div>
+        <!-- 🚀 終極發射按鈕 -->
+        <div class="flex flex-col items-center justify-center p-8 bg-indigo-50 rounded-2xl border-2 border-indigo-100 border-dashed">
+            <i data-lucide="bar-chart-2" class="w-16 h-16 text-indigo-300 mb-4"></i>
+            <h3 class="text-xl font-bold text-indigo-900 mb-2">想看學生成績嗎？</h3>
+            <p class="text-indigo-700 mb-6 text-center">所有資料都已即時寫入試算表，點擊下方按鈕直接前往觀看！</p>
+            <button onclick="openSheet()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-full text-xl font-bold shadow-lg flex items-center gap-3 transition-transform transform hover:scale-105">
+                <i data-lucide="external-link" class="w-6 h-6"></i> 👉 一鍵打開 Google 試算表
+            </button>
         </div>
     </div>
 </div>
@@ -178,20 +153,19 @@
     /* ==========================================
        系統整合與狀態控制
     ========================================== */
-    const ADMIN_PASSWORD = "S2860885"; // 教師密碼
+    const ADMIN_PASSWORD = "S2860885"; // 🟢 教師密碼
     let appCurrentMode = 'game';
-    
-    const savedUrl = localStorage.getItem('othelloGasUrl');
-    if (savedUrl) { document.getElementById('admin-gas-url').value = savedUrl; }
 
-    function getGasUrl() { return document.getElementById('admin-gas-url').value.trim(); }
-    function saveGasUrl() { localStorage.setItem('othelloGasUrl', getGasUrl()); fetchAdminData(); }
+    function openSheet() {
+        const sheetUrl = document.getElementById('admin-sheet-url').value.trim();
+        window.open(sheetUrl, '_blank'); // 另開新分頁去看試算表
+    }
 
     function toggleMode() {
         if (appCurrentMode === 'game') {
             const pwd = prompt("請輸入教師管理密碼");
             if (pwd === null) return; 
-            if (pwd !== ADMIN_PASSWORD) { alert("密碼錯誤，無法進入管理後台。"); return; }
+            if (pwd !== ADMIN_PASSWORD) { alert("密碼錯誤。"); return; }
             
             appCurrentMode = 'admin';
             document.getElementById('game-view').style.display = 'none';
@@ -199,12 +173,11 @@
             document.getElementById('login-modal').classList.add('hidden');
             document.getElementById('mode-btn').innerHTML = `<i data-lucide="gamepad-2" class="w-4 h-4 text-indigo-300"></i> <span>返回學生遊戲區</span>`;
             lucide.createIcons();
-            fetchAdminData();
         } else {
             appCurrentMode = 'game';
             document.getElementById('admin-view').style.display = 'none';
             document.getElementById('game-view').style.display = 'block';
-            document.getElementById('mode-btn').innerHTML = `<i data-lucide="shield-check" class="w-4 h-4 text-indigo-300"></i> <span>切換至教師後台</span>`;
+            document.getElementById('mode-btn').innerHTML = `<i data-lucide="shield-check" class="w-4 h-4 text-indigo-300"></i> <span>進入教師控制台</span>`;
             lucide.createIcons();
             checkLoginStatus(); 
         }
@@ -256,7 +229,7 @@
         board = Array(8).fill().map(() => Array(8).fill(EMPTY));
         board[3][3] = WHITE; board[3][4] = BLACK; board[4][3] = BLACK; board[4][4] = WHITE;
         currentPlayer = BLACK; isGameOver = false; aiComputing = false; currentHint = null;
-        setCoachMessage(`嗨，${localStorage.getItem('othelloName')}。遊戲開始！控制中心區域是前期的好策略。`);
+        setCoachMessage(`嗨，${localStorage.getItem('othelloName')}。遊戲開始！`);
         updateValidMoves(); renderBoard(); updateUI();
     }
     function updateValidMoves() {
@@ -411,164 +384,12 @@
     }
 
     function uploadToGas(payload) {
-        const url = getGasUrl(); if(!url || !isLoggedin) return;
+        const url = document.getElementById('admin-gas-url').value.trim(); if(!url || !isLoggedin) return;
         const data = { ...payload, timestamp: new Date().toISOString(), playerClass: localStorage.getItem('othelloClass'), playerName: localStorage.getItem('othelloName') };
+        // 透過 no-cors 模式，無需理會 Google 教育版防火牆，單向把資料強行「投遞」過去
         fetch(url, { method: 'POST', mode: 'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).catch(e=>console.error('GAS POST Error', e));
     }
 
-
-    /* ==========================================
-       🟢 後台 JSONP 穿透讀取技術 (無視教育版 CORS 防火牆)
-    ========================================== */
-    let adminTab = 'results', resData = [], anaData = [];
-    
-    function switchAdminTab(tab) {
-        adminTab = tab;
-        document.getElementById('tab-results').className = `px-4 md:px-6 py-3 border-b-2 text-sm flex items-center gap-2 transition-all ${tab==='results'?'tab-active':'tab-inactive'}`;
-        document.getElementById('tab-analysis').className = `px-4 md:px-6 py-3 border-b-2 text-sm flex items-center gap-2 transition-all ${tab==='analysis'?'tab-active':'tab-inactive'}`;
-        document.getElementById('view-results').style.display = tab === 'results' ? 'block' : 'none';
-        document.getElementById('view-analysis').style.display = tab === 'analysis' ? 'block' : 'none';
-        filterTable();
-    }
-
-    // JSONP 跨域請求器
-    function fetchJSONP(url) {
-        return new Promise((resolve, reject) => {
-            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-            const script = document.createElement('script');
-            
-            const timeout = setTimeout(() => {
-                cleanup();
-                reject(new Error("網路連線逾時，或此帳號無法存取該服務。"));
-            }, 10000); // 10秒逾時防卡死
-
-            window[callbackName] = function(data) {
-                cleanup();
-                resolve(data);
-            };
-
-            script.onerror = function() {
-                cleanup();
-                reject(new Error("載入腳本失敗，可能是被瀏覽器安全機制或廣告插件攔截。"));
-            };
-
-            function cleanup() {
-                clearTimeout(timeout);
-                delete window[callbackName];
-                if (script.parentNode) script.parentNode.removeChild(script);
-            }
-
-            const sep = url.includes('?') ? '&' : '?';
-            script.src = `${url}${sep}prefix=${callbackName}`;
-            document.body.appendChild(script);
-        });
-    }
-
-    async function fetchAdminData() {
-        const url = getGasUrl(); 
-        if(!url) { alert("請先輸入上方 GAS URL 連結"); return; }
-        
-        const loadEl = document.getElementById('loading');
-        const emptyEl = document.getElementById('empty-state');
-        const errEl = document.getElementById('error-state');
-        const refIcon = document.getElementById('refresh-icon');
-        
-        // 嚴格介面重設
-        document.getElementById('view-results').style.display = 'none';
-        document.getElementById('view-analysis').style.display = 'none';
-        emptyEl.style.display = 'none';
-        errEl.style.display = 'none';
-        loadEl.style.display = 'flex'; // 顯示轉圈圈
-        refIcon.classList.add('animate-spin');
-
-        try {
-            const sep = url.includes('?') ? '&' : '?';
-            
-            // 🟢 使用 JSONP 穿透技術並行抓取，繞過 Google 教育版的限制
-            const [json1, json2] = await Promise.all([
-                fetchJSONP(`${url}${sep}action=getResults`),
-                fetchJSONP(`${url}${sep}action=getAnalysis`)
-            ]);
-            
-            resData = Array.isArray(json1) && json1.length>0 && json1[0]['時間'] ? json1 : [];
-            anaData = Array.isArray(json2) && json2.length>0 && json2[0]['時間'] ? json2 : [];
-            
-            renderAdminResults(); 
-            renderAdminAnalysis(); 
-            
-            loadEl.style.display = 'none';
-
-            if(resData.length === 0 && anaData.length === 0) { 
-                emptyEl.style.display = 'flex'; 
-            } else {
-                switchAdminTab(adminTab); 
-            }
-        } catch(e) { 
-            console.error("JSONP Fetch 錯誤：", e); 
-            loadEl.style.display = 'none'; 
-            errEl.style.display = 'flex';  
-            
-            errEl.innerHTML = `
-                <div class="flex flex-col items-center">
-                    <i data-lucide="alert-triangle" class="w-16 h-16 text-red-500 mb-3"></i>
-                    <h3 class="text-2xl font-bold text-gray-800">資料庫讀取失敗 (權限遭阻擋)</h3>
-                    <p class="text-sm text-gray-600 mt-2 max-w-md font-medium">${e.message}</p>
-                    <div class="mt-5 bg-red-50 text-red-800 p-5 rounded-xl text-sm text-left max-w-lg w-full border border-red-200 shadow-sm leading-relaxed">
-                        <strong class="text-lg text-red-900 flex items-center gap-2 mb-2"><i data-lucide="wrench" class="w-5 h-5"></i> 必看解法 (100% 能解決)：</strong>
-                        1. 由於您使用的是學校教育帳號 (<code>.edu.tw</code>)，Google 預設會阻擋公開資料。<br>
-                        2. <strong>請確保您在目前的瀏覽器中，已經登入該 <code>@teacher.sces.cy.edu.tw</code> 帳號。</strong><br>
-                        3. 如果確定登入了還是不行，請回到 Google Apps Script 重新部署，並確認「誰可以存取」是選擇<strong>「所有人」</strong>。
-                    </div>
-                </div>
-            `;
-            lucide.createIcons();
-        } finally { 
-            refIcon.classList.remove('animate-spin'); 
-        }
-    }
-
-    function renderAdminResults() {
-        const tbody = document.getElementById('results-body'); tbody.innerHTML = '';
-        resData.forEach(row => {
-            const isWin = row['對局結果'] && row['對局結果'].includes('玩家獲勝');
-            const badge = isWin ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">勝</span>` : (row['對局結果']&&row['對局結果'].includes('平手') ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">平</span>` : `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">敗</span>`);
-            tbody.innerHTML += `<tr class="hover:bg-gray-50 search-row">
-                <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">${row['時間']||'-'}</td>
-                <td class="px-6 py-4 text-sm font-medium class-cell whitespace-nowrap">${row['班級']||'-'}</td>
-                <td class="px-6 py-4 text-sm font-medium text-indigo-600 name-cell whitespace-nowrap">${row['姓名']||'-'}</td>
-                <td class="px-6 py-4 text-sm font-bold text-center whitespace-nowrap">${row['玩家得分(黑)']||'0'}</td>
-                <td class="px-6 py-4 text-sm text-gray-500 text-center whitespace-nowrap">${row['AI得分(白)']||'0'}</td>
-                <td class="px-6 py-4 text-sm whitespace-nowrap">${badge} ${row['對局結果']||'-'}</td>
-            </tr>`;
-        });
-    }
-
-    function renderAdminAnalysis() {
-        const tbody = document.getElementById('analysis-body'); tbody.innerHTML = '';
-        anaData.forEach(row => {
-            let bc = "bg-gray-100 text-gray-800";
-            if(row['失誤等級']==='嚴重失誤') bc="bg-red-100 text-red-800"; else if(row['失誤等級']==='失誤') bc="bg-orange-100 text-orange-800"; else if(row['失誤等級']==='尚可') bc="bg-yellow-100 text-yellow-800"; else if(row['失誤等級']&&row['失誤等級'].includes('完美')) bc="bg-green-100 text-green-800";
-            tbody.innerHTML += `<tr class="hover:bg-gray-50 search-row">
-                <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">${row['時間']||'-'}</td>
-                <td class="px-6 py-4 text-sm font-medium whitespace-nowrap"><span class="class-cell">${row['班級']||'-'}</span><br><span class="text-indigo-600 name-cell">${row['姓名']||'-'}</span></td>
-                <td class="px-6 py-4 text-sm font-bold text-center whitespace-nowrap">${row['玩家落子']||'-'}</td>
-                <td class="px-6 py-4 text-sm text-red-500 font-semibold text-center whitespace-nowrap">${row['評分落差']||'-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-1 text-xs font-semibold rounded-full ${bc}">${row['失誤等級']||'-'}</span></td>
-                <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title="${row['教練評語']}">${row['教練評語']||'-'}</td>
-            </tr>`;
-        });
-    }
-
-    function filterTable() {
-        const input = document.getElementById('search-input').value.toLowerCase();
-        const rows = document.getElementById(adminTab==='results'?'view-results':'view-analysis').querySelectorAll('.search-row');
-        rows.forEach(r => {
-            const c = r.querySelector('.class-cell').innerText.toLowerCase(), n = r.querySelector('.name-cell').innerText.toLowerCase();
-            r.style.display = (c.includes(input) || n.includes(input)) ? '' : 'none';
-        });
-    }
-
-    // 啟動系統
     window.onload = checkLoginStatus;
 </script>
 </body>
